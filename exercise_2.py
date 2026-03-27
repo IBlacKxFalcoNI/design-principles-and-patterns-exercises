@@ -25,8 +25,9 @@ from exercise_1 import Product
 
 
 # TODO: Implement a `ShoppingCartWriter` interface
-# class ShoppingCartWriter(Protocol):
-#     pass
+class ShoppingCartWriter(Protocol):
+    def add_product(self, *, name: str, **kwargs) -> None:
+        ...
 
 class ShoppingCart:
     @dataclass
@@ -48,12 +49,22 @@ class ShoppingCart:
     #       `ShoppingCartWriter` interface that you expect using the `Protocol` class from
     #       the `typing` module. Actual implementations of the interface for xml or json
     #       can be put at the end of this file, for instance.
-    def export_to_xml(self, filename: str) -> None:
-        with open(filename, "w") as xml_file:
-            xml_file.write("<Products>\n")
-            for name, entry in self._products.items():
-                xml_file.write(f"  <Product name=\"{name}\" quantity=\"{entry.quantity}\" last_modified=\"{entry.last_modified}\"/>\n")
-            xml_file.write("</Products>\n")
+
+    def export(self, cart_writer: ShoppingCartWriter) -> None:
+        for name, entry in self._products.items():
+            cart_writer.add_product(
+                name=name,
+                quantity=entry.quantity,
+                last_modified=entry.last_modified
+            ) 
+
+
+    # def export_to_xml(self, filename: str) -> None:
+    #     with open(filename, "w") as xml_file:
+    #         xml_file.write("<Products>\n")
+    #         for name, entry in self._products.items():
+    #             xml_file.write(f"  <Product name=\"{name}\" quantity=\"{entry.quantity}\" last_modified=\"{entry.last_modified}\"/>\n")
+    #         xml_file.write("</Products>\n")
 
     def export_to_json(self, filename: str) -> None:
         with open(filename, "w") as json_file:
@@ -72,8 +83,21 @@ class ShoppingCart:
 
 
 # TODO: implement XMLWriter and verify that it produces the same as "export_to_xml()"
-# class XMLShoppingCartWriter:
-#     pass
+class XMLShoppingCartWriter:
+    def __init__(self, filename: str) -> None:
+        self._file = open(filename, "w")
+        self._file.write("<Products>\n")
+
+    def __del__(self) -> None:
+        self._file.write("</Products>\n")
+        self._file.close()
+
+    def add_product(self, *, name: str, **kwargs) -> None:
+        self._file.write(f"  <Product name=\"{name}\"")
+        for key, value in kwargs.items():
+            self._file.write(f" {key}=\"{value}\"")
+        self._file.write("/>\n")
+
 
 # Possible solution for a writer for json
 # class JSONShoppingCartWriter:
@@ -87,11 +111,11 @@ if __name__ == "__main__":
     cart.add(Product("Laptop", "999.00"))
     cart.add(Product("Keyboard", "10.00"))
     cart.add(Product("Keyboard", "10.00"))
-    cart.export_to_xml(xml_filename)
+    # cart.export_to_xml(xml_filename)
     cart.export_to_json(json_filename)
 
     # TODO: implement and use the export interface instead, injecting the respective writer
-    # cart.export(XMLShoppingCartWriter("cart.xml"))
+    cart.export(XMLShoppingCartWriter("cart.xml"))
     # cart.export(JSONShoppingCartWriter("cart.json"))
 
     for filename in [xml_filename, json_filename]:
