@@ -59,8 +59,17 @@ class MyPoint:
 
 
 # TODO: Implement this adapter
-# class MyPointAdapter:
-#     pass
+class MyPointAdapter:
+    def __init__(self, point: MyPoint) -> None:
+        self._point = point
+
+    @property
+    def x(self) -> float:
+        return self._point[0] 
+
+    @property
+    def y(self) -> float:
+        return self._point[1] 
 
 if __name__ == "__main__":
     point_cloud = [
